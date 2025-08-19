@@ -1,13 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CalmStart</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <script type="module" src="./src/main.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <main>
+      <h1>CalmStart</h1>
+
+      <form id="plan-form" autocomplete="off">
+        <label>
+          Task
+          <input
+            name="task"
+            placeholder="e.g. Complete Week 10 Assignment"
+            required
+          />
+        </label>
+
+        <label>
+          Minutes
+          <input
+            name="minutes"
+            type="number"
+            min="5"
+            step="5"
+            value="25"
+            required
+          />
+        </label>
+
+        <button type="submit">Create plan</button>
+      </form>
+
+      <section id="plan" hidden>
+        <h2>Your plan</h2>
+        <ol id="steps"></ol>
+        <p id="pomodoro"></p>
+      </section>
+    </main>
   </body>
 </html>

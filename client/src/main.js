@@ -1,24 +1,59 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+const SERVER_URL = "http://localhost:8080";
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+const form = document.getElementById("plan-form");
+const planSection = document.getElementById("plan");
+const stepsEl = document.getElementById("steps");
+const pomodoroEl = document.getElementById("pomodoro");
 
-setupCounter(document.querySelector('#counter'))
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  const formData = new FormData(form);
+  const body = Object.fromEntries(formData.entries());
+  body.minutes = Number(body.minutes);
+
+  try {
+    const res = await fetch(SERVER_URL + "/plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Server error");
+    }
+
+    const plan = await res.json();
+
+    stepsEl.innerHTML = "";
+    (plan.steps || []).forEach(function (s) {
+      const li = document.createElement("li");
+      li.textContent = s.title + " -> " + s.minutes + " min";
+      stepsEl.appendChild(li);
+    });
+
+    if (plan.pomodoro) {
+      pomodoroEl.textContent =
+        "Pomodoro: " +
+        plan.pomodoro.work +
+        "/" +
+        plan.pomodoro.break +
+        " × " +
+        plan.pomodoro.cycles;
+    } else {
+      pomodoroEl.textContent = "";
+    }
+
+    planSection.hidden = false;
+  } catch (err) {
+    console.error(err);
+    alert("Couldn’t create a plan: " + (err.message || String(err)));
+  }
+}
+
+function init() {
+  form.addEventListener("submit", handleSubmit);
+}
+
+init();
