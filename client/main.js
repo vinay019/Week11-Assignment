@@ -1,4 +1,4 @@
-const SERVER_URL = "https://week11-assignment-server.onrender.com/";
+const SERVER_URL = "https://week11-assignment-server.onrender.com";
 
 const form = document.getElementById("plan-form");
 const planSection = document.getElementById("plan");
