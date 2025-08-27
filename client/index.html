@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CalmStart</title>
     <link rel="stylesheet" href="./src/style.css" />
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/main.js" defer></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
@@ -26,7 +26,15 @@
         </label>
 
         <label>
-          Minutes
+          Details (optional)
+          <input
+            name="details"
+            placeholder="e.g. Focus on README, deploy links, reflection"
+          />
+        </label>
+
+        <label>
+          Minutes available
           <input
             name="minutes"
             type="number"
@@ -37,13 +45,29 @@
           />
         </label>
 
+        <label>
+          Deadline in (e.g. 2 hours, 1 day)
+          <input name="deadline" placeholder="e.g. 3 hours" />
+        </label>
+
         <button type="submit">Create plan</button>
       </form>
 
       <section id="plan" hidden>
         <h2>Your plan</h2>
+        <p id="progress" class="subtle"></p>
         <ol id="steps"></ol>
         <p id="pomodoro"></p>
+      </section>
+      <section id="timer" hidden>
+        <h2>Pomodoro</h2>
+        <p id="timer-meta" class="subtle"></p>
+        <div id="timer-display">00:00</div>
+        <div class="timer-actions">
+          <button id="start-btn" type="button">Start</button>
+          <button id="pause-btn" type="button">Pause</button>
+          <button id="reset-btn" type="button">Reset</button>
+        </div>
       </section>
     </main>
   </body>

@@ -12,13 +12,18 @@ const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 const systemInstruction = `
-You are CalmStart. Turn one task into a tiny plan.
+Turn one task into a tiny, executable plan within the user's time budget.
+Use any extra context (details, deadline window) to sequence steps sensibly.
 Return ONLY valid JSON in this exact shape:
 {
   "steps": [{"title":"string","minutes": number}],
   "pomodoro": {"work": number, "break": number, "cycles": number}
 }
-British English. No extra text or markdown outside the JSON.
+Constraints:
+- British English.
+- 3–6 steps.
+- Sum of minutes <= user's minutes.
+- No text or markdown outside the JSON.
 `;
 
 app.get("/health", function (req, res) {
@@ -28,15 +33,17 @@ app.get("/health", function (req, res) {
 app.post("/plan", async function (req, res) {
   try {
     const task = req.body && req.body.task;
-    const minutes = req.body && Number(req.body.minutes);
+    const details = req.body && req.body.details;
+    const deadline = req.body && req.body.deadline;
+    const minutes = Number(req.body && req.body.minutes);
 
-    if (!task || !minutes) {
+    if (!task || !Number.isFinite(minutes) || minutes <= 0) {
       return res
         .status(400)
-        .json({ error: "Please provide 'task' and 'minutes'." });
+        .json({ error: "Please provide 'task' and a positive 'minutes'." });
     }
 
-    const userInput = { task, minutes };
+    const userInput = { task, details, deadline, minutes };
 
     const aiRes = await model.generateContent({
       systemInstruction,
@@ -47,6 +54,19 @@ app.post("/plan", async function (req, res) {
 
     const text = aiRes.response.text();
     const json = extractJson(text);
+
+    const sum = (json.steps || []).reduce(
+      (a, s) => a + (Number(s.minutes) || 0),
+      0
+    );
+    if (sum > minutes && json.steps && json.steps.length) {
+      const over = sum - minutes;
+      const last = json.steps[json.steps.length - 1];
+      if (Number(last.minutes) > over)
+        last.minutes = Number(last.minutes) - over;
+      else json.steps.pop();
+    }
+
     res.json(json);
   } catch (err) {
     console.error(err);
@@ -59,13 +79,12 @@ app.post("/plan", async function (req, res) {
 function extractJson(txt) {
   const start = txt.indexOf("{");
   const end = txt.lastIndexOf("}");
-  if (start === -1 || end === -1) {
+  if (start === -1 || end === -1)
     throw new Error("No JSON found in model response");
-  }
   return JSON.parse(txt.slice(start, end + 1));
 }
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, function () {
   console.log("Server listening on :" + PORT);
 });
